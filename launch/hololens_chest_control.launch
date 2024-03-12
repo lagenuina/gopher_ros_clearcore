@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>=
+    <include file="$(find gopher_ros_clearcore)/launch/chest.launch"/>
+
+    <node pkg="gopher_ros_clearcore" type="hololens_chest_mapping.py" name="hololens_chest_mapping" output="screen" respawn="true"/>
+
+    <node 
+    pkg="gopher_ros_clearcore" 
+    type="chest_handler.py" 
+    name="chest_handler" 
+    output="screen">
+    </node>
+    
+</launch>

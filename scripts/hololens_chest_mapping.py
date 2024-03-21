@@ -39,11 +39,11 @@ class HololensChestMapping:
             self.__shutdown_node_service,
         )
 
-        # # Service subscriber:
-        # self.__chest_home = rospy.ServiceProxy(
-        #     'chest_control/home',
-        #     Empty,
-        # )
+        # Service subscriber:
+        self.__chest_home = rospy.ServiceProxy(
+            'chest_control/home',
+            Empty,
+        )
         self.__chest_stop = rospy.ServiceProxy(
             'chest_control/stop',
             Empty,
@@ -60,9 +60,9 @@ class HololensChestMapping:
             self.__slider_value_callback,
         )
 
-        # rospy.sleep(3)
+        rospy.sleep(3)
 
-        # self.__chest_home()
+        self.__chest_home()
 
     # # Service handlers:
     def __shutdown_node_service(self, request):
@@ -86,7 +86,6 @@ class HololensChestMapping:
     def __slider_value_callback(self, message):
 
         self.chest_position = np.round(message.data, 2) * 0.44
-
         self.__chest_position(self.chest_position, 1.0)
 
     # # Public methods:

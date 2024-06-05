@@ -56,7 +56,13 @@ class ChestHandler:
         self.__chest_position = 0.44
         self.__desired_position = 0.44
         self.__adjusting = False
-        self.__tf_from_mobilebase_to_object = {
+
+        self.__chest_camera = {
+            'position': np.array([0.0, 0.0, 0.0]),
+            'orientation': np.array([1.0, 0.0, 0.0, 0.0]),
+        }
+
+        self.__tf_from_anchor_to_object = {
             'position': np.array([0.0, 0.0, 0.0]),
             'orientation': np.array([0.0, 0.0, 0.0, 1.0]),
         }
@@ -90,9 +96,9 @@ class ChestHandler:
             )
         )
         rospy.Subscriber(
-            '/my_gen3/tf_base_target_cam',
+            '/my_gen3/target_hologram',
             Pose,
-            self.__tf_base_object_callback,
+            self.__tf_anchor_object_callback,
         )
         rospy.Subscriber(
             'chest_logger/current_position',
@@ -103,6 +109,11 @@ class ChestHandler:
             '/my_gen3/pick_and_place',
             Int32,
             self.__robot_pick_and_place_callback,
+        )
+        rospy.Subscriber(
+            'my_gen3/tf_chest_cam_anchor',
+            Pose,
+            self.__chest_cam_transform_callback,
         )
         # # Service provider:
         rospy.Service(
@@ -147,7 +158,7 @@ class ChestHandler:
 
         rospy.sleep(3)
 
-        self.__move_and_pause_tracking(self.__desired_position)
+        self.__home_and_pause_tracking()
 
     # # Dependency status callbacks:
     # NOTE: each dependency topic should have a callback function, which will
@@ -163,20 +174,26 @@ class ChestHandler:
 
         self.__state = message.data
 
-    def __tf_base_object_callback(self, message):
+    def __tf_anchor_object_callback(self, message):
 
-        self.__tf_from_mobilebase_to_object['position'][0] = message.position.x
-        self.__tf_from_mobilebase_to_object['position'][1] = message.position.y
-        self.__tf_from_mobilebase_to_object['position'][2] = message.position.z
+        self.__tf_from_anchor_to_object['position'][0] = message.position.x
+        self.__tf_from_anchor_to_object['position'][1] = message.position.y
+        self.__tf_from_anchor_to_object['position'][2] = message.position.z
 
-        self.__tf_from_mobilebase_to_object['orientation'][
-            0] = message.orientation.w
-        self.__tf_from_mobilebase_to_object['orientation'][
-            1] = message.orientation.x
-        self.__tf_from_mobilebase_to_object['orientation'][
-            2] = message.orientation.y
-        self.__tf_from_mobilebase_to_object['orientation'][
-            3] = message.orientation.z
+        self.__tf_from_anchor_to_object['orientation'][0
+                                                      ] = message.orientation.w
+        self.__tf_from_anchor_to_object['orientation'][1
+                                                      ] = message.orientation.x
+        self.__tf_from_anchor_to_object['orientation'][2
+                                                      ] = message.orientation.y
+        self.__tf_from_anchor_to_object['orientation'][3
+                                                      ] = message.orientation.z
+
+    def __chest_cam_transform_callback(self, message):
+
+        self.__chest_camera['position'][0] = message.position.x
+        self.__chest_camera['position'][1] = message.position.y
+        self.__chest_camera['position'][2] = message.position.z
 
     def __chest_position_callback(self, message):
         self.__chest_position = message.data
@@ -193,12 +210,13 @@ class ChestHandler:
 
         """
 
-        object_height = self.__tf_from_mobilebase_to_object['position'][1]
-        print("Object height", object_height)
-        print("Chest height", self.__chest_position)
-        difference_height = object_height - self.__chest_position
+        object_height = self.__tf_from_anchor_to_object['position'][1]
+        camera_height = self.__chest_camera['position'][1]
 
-        print(difference_height)
+        print("Object height", object_height)
+        print("Chest height", camera_height)
+        difference_height = object_height - camera_height
+
         if difference_height > 0.20 and self.__is_chest_middle_position():
             self.__desired_position = 0.44
 
@@ -322,6 +340,12 @@ class ChestHandler:
         self.__pause_object_tracking(True)
 
         self.__move_chest(position, 1.0)
+
+    def __home_and_pause_tracking(self):
+        self.__adjusting = True
+        self.__pause_object_tracking(True)
+
+        self.__chest_home()
 
     # # Public methods:
     # NOTE: By default all new class methods should be private.

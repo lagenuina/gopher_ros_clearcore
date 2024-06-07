@@ -210,11 +210,10 @@ class ChestHandler:
 
         """
 
-        object_height = self.__tf_from_anchor_to_object['position'][1]
-        camera_height = self.__chest_camera['position'][1]
+        # TO DO: when using anchor, change from [2] to [1]
+        object_height = self.__tf_from_anchor_to_object['position'][2]
+        camera_height = self.__chest_camera['position'][2]
 
-        print("Object height", object_height)
-        print("Chest height", camera_height)
         difference_height = object_height - camera_height
 
         if difference_height > 0.20 and self.__is_chest_middle_position():

@@ -3,7 +3,7 @@
 
 Author(s):
     1. Lorena Genua (lorena.genua@gmail.com), Human-Inspired Robotics (HiRo)
-       lab, Worcester Polytechnic Institute (WPI), 2023.
+       lab, Worcester Polytechnic Institute (WPI), 2024.
 
 """
 
@@ -106,7 +106,7 @@ class ChestHandler:
             self.__chest_position_callback,
         )
         rospy.Subscriber(
-            '/my_gen3/pick_and_place',
+            f'/my_gen3/robot_control/current_task_state',
             Int32,
             self.__robot_pick_and_place_callback,
         )
@@ -211,22 +211,28 @@ class ChestHandler:
         """
 
         # TO DO: when using anchor, change from [2] to [1]
-        object_height = self.__tf_from_anchor_to_object['position'][2]
-        camera_height = self.__chest_camera['position'][2]
+        object_height = self.__tf_from_anchor_to_object['position'][1]
+        camera_height = self.__chest_camera['position'][1]
+        difference_height = camera_height - object_height
 
-        difference_height = object_height - camera_height
+        if self.__state == 3:
 
-        if difference_height > 0.20 and self.__is_chest_middle_position():
-            self.__desired_position = 0.44
-
-        elif difference_height < -0.20 and self.__is_chest_highest_position():
-            self.__desired_position = 0.20
-
-        elif self.__state == 3 and self.__is_chest_highest_position():
-            self.__desired_position = 0.20
+            if self.__is_chest_highest_position():
+                self.__desired_position = 0.20
+            else:
+                return []
 
         else:
-            return []
+
+            if difference_height > 0.14 and self.__is_chest_middle_position():
+                self.__desired_position = 0.44
+
+            elif difference_height < -0.14 and self.__is_chest_highest_position(
+            ):
+                self.__desired_position = 0.20
+
+            else:
+                return []
 
         self.__move_and_pause_tracking(self.__desired_position)
 

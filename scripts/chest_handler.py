@@ -211,28 +211,54 @@ class ChestHandler:
         """
 
         # TO DO: when using anchor, change from [2] to [1]
+        # object_height = abs(self.__tf_from_anchor_to_object['position'][1])
+
         object_height = self.__tf_from_anchor_to_object['position'][1]
         camera_height = self.__chest_camera['position'][1]
         difference_height = camera_height - object_height
 
         if self.__state == 3:
 
-            if self.__is_chest_highest_position():
-                self.__desired_position = 0.20
+            if not self.__is_chest_middle_position():
+                self.__desired_position = 0.22
             else:
                 return []
 
         else:
+            # if (object_height < 0.26) and not self.__is_chest_lower_position():
+            #     self.__desired_position = 0.0
 
-            if difference_height > 0.14 and self.__is_chest_middle_position():
+            # elif (object_height > 0.26 and object_height < 0.57
+            #      ) and not self.__is_chest_middle_position():
+            #     self.__desired_position = 0.22
+
+            # elif (object_height > 0.26 and object_height < 0.57
+            #      ) and not self.__is_chest_highest_position():
+            #     self.__desired_position = 0.44
+            if (object_height <
+                0.10) and not self.__is_chest_highest_position():
                 self.__desired_position = 0.44
 
-            elif difference_height < -0.14 and self.__is_chest_highest_position(
-            ):
-                self.__desired_position = 0.20
+            elif (object_height > 0.10 and object_height < 0.35
+                 ) and not self.__is_chest_middle_position():
+                self.__desired_position = 0.22
+
+            elif (object_height > 0.35 and object_height < 0.70
+                 ) and not self.__is_chest_lower_position():
+                self.__desired_position = 0.0
 
             else:
                 return []
+
+            # if difference_height > 0.14 and self.__is_chest_middle_position():
+            #     self.__desired_position = 0.44
+
+            # elif difference_height < -0.14 and self.__is_chest_highest_position(
+            # ):
+            #     self.__desired_position = 0.20
+
+            # else:
+            #     return []
 
         self.__move_and_pause_tracking(self.__desired_position)
 
@@ -263,6 +289,13 @@ class ChestHandler:
     def __is_chest_middle_position(self):
 
         if abs(self.__chest_position - 0.20) < 0.03:
+            return True
+        else:
+            return False
+
+    def __is_chest_lower_position(self):
+
+        if abs(self.__chest_position) < 0.03:
             return True
         else:
             return False

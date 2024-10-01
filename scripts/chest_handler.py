@@ -200,7 +200,7 @@ class ChestHandler:
 
         if self.__adjusting and abs(
             self.__chest_position - self.__desired_position
-        ) < 0.05:
+        ) < 0.01:
             self.__pause_object_tracking(False)
             self.__adjusting = False
 
@@ -215,12 +215,11 @@ class ChestHandler:
 
         object_height = self.__tf_from_anchor_to_object['position'][1]
         camera_height = self.__chest_camera['position'][1]
-        difference_height = camera_height - object_height
 
         if self.__state == 3:
 
             if not self.__is_chest_middle_position():
-                self.__desired_position = 0.22
+                self.__desired_position = 0.20
             else:
                 return []
 
@@ -241,7 +240,7 @@ class ChestHandler:
 
             elif (object_height > 0.10 and object_height < 0.35
                  ) and not self.__is_chest_middle_position():
-                self.__desired_position = 0.22
+                self.__desired_position = 0.20
 
             elif (object_height > 0.35 and object_height < 0.70
                  ) and not self.__is_chest_lower_position():
@@ -268,10 +267,10 @@ class ChestHandler:
 
         if request.state == 0 and self.__is_chest_middle_position():
             self.__desired_position = 0.44
-
+        elif request.state == 0 and self.__is_chest_lower_position():
+            self.__desired_position = 0.20
         elif request.state == 1 and self.__is_chest_highest_position():
             self.__desired_position = 0.20
-
         else:
             return True
 
